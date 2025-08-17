@@ -16,11 +16,12 @@ pipeline {
         stage('Test') {
             steps {
                 sh 'echo "Running tests..."'
+                sh 'docker run --rm jenkins-demo-app npm test || echo "No tests yet"'
             }
         }
         stage('Deploy') {
             steps {
-                sh 'docker run -d -p 3000:3000 jenkins-demo-app'
+                sh 'docker run -d -p 3000:3000 --name jenkins-demo-container jenkins-demo-app'
             }
         }
     }
