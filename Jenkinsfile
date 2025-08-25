@@ -1,27 +1,27 @@
 pipeline {
     agent any
+
+    environment {
+        IMAGE_NAME = "demo-jenkins-app"
+    }
+
     stages {
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/SamidhaManjrekar/my-jenkins-demo-repo.git',
-                    credentialsId: 'github-creds'
+                git 'https://github.com/SamidhaManjrekar/my-jenkins-demo-repo.git'
             }
         }
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t jenkins-demo-app .'
+                dir('app') {
+                    sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                }
             }
         }
-        stage('Test') {
+        stage('Deploy Container') {
             steps {
-                sh 'echo "Running tests..."'
-                sh 'docker run --rm jenkins-demo-app npm test || echo "No tests yet"'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                sh 'docker run -d -p 3000:3000 --name jenkins-demo-container jenkins-demo-app'
+                sh 'docker rm -f demo-container || true'
+                sh 'docker run -d --name demo-container -p 8081:80 $IMAGE_NAME:$BUILD_NUMBER'
             }
         }
     }
